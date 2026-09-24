@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, g
+from uuid import uuid4
 from app.utils.auth import (
     get_auth_context,
     auth_required,
@@ -46,8 +47,7 @@ def get_classes():
         else:
             classes = []
     else:
-        classes_resp = sb.from_("classes").select("*").order("created_at", desc=True).execute()
-        classes = classes_resp.data if classes_resp.data else []
+        return jsonify({"classes": []})
 
     return jsonify({"classes": classes})
 
@@ -168,30 +168,37 @@ def delete_class(class_id):
 
 
 @bp.route("/<string:class_id>/students", methods=["GET"])
-@teacher_required
+@auth_required
 def get_class_students(class_id):
     profile = g.profile
     sb = g.sb
+    role = profile.get("role")
 
-    # Verify class ownership
+    # Verify class access
     class_resp = (
         sb.from_("classes")
         .select("*")
         .eq("id", class_id)
-        .eq("teacher_id", profile["id"])
         .single()
         .execute()
     )
     if not class_resp.data:
-        return jsonify({"error": "Class not found or forbidden"}), 404
+        return jsonify({"error": "Class not found"}), 404
 
-    students_resp = (
-        sb.from_("class_students")
-        .select("*, profiles:student_id(id, name, email, avatar_url)")
-        .eq("class_id", class_id)
-        .execute()
-    )
-    return jsonify({"students": students_resp.data if students_resp.data else []})
+    if role in ("teacher", "admin"):
+        pass  # Full access
+    elif role == "student":
+        enrolled_resp = (
+            sb.from_("class_students")
+            .select("*")
+            .eq("class_id", class_id)
+            .eq("student_id", profile["id"])
+            .execute()
+        )
+        if not enrolled_resp.data:
+            return jsonify({"error": "Not enrolled in this class"}), 403
+    else:
+        return jsonify({"error": "Unauthorized"}), 403
 
 
 @bp.route("/<string:class_id>/students", methods=["POST"])
@@ -219,7 +226,24 @@ def add_student(class_id):
 
     student_profile = get_profile_by_email(sb, student_email.strip().lower())
     if not student_profile:
-        return jsonify({"error": "No user found with that email address"}), 404
+        new_profile_id = str(uuid4())
+        name = student_email.split("@")[0].replace(".", " ").title()
+        insert_resp = (
+            sb.from_("profiles")
+            .insert({
+                "id": new_profile_id,
+                "auth_user_id": new_profile_id,
+                "name": name,
+                "email": student_email.strip().lower(),
+                "role": "student",
+            })
+            .select()
+            .single()
+            .execute()
+        )
+        student_profile = insert_resp.data if insert_resp.data else None
+        if not student_profile:
+            return jsonify({"error": "Failed to create student profile"}), 400
 
     try:
         result_resp = (

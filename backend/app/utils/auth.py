@@ -12,9 +12,7 @@ def get_supabase() -> Client:
     url = os.getenv("VITE_SUPABASE_URL")
     key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
     if not url or not key:
-        # Fallback for dev/initialization without env
-        url = url or "https://placeholder.supabase.co"
-        key = key or "placeholder-key"
+        raise RuntimeError("Missing Supabase env vars: VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY")
     if _supabase_client is None:
         _supabase_client = create_client(url, key)
     return _supabase_client
@@ -30,9 +28,9 @@ def get_profile_by_auth_id(sb: Client, auth_user_id: str) -> Optional[Dict[str, 
 
 
 def get_profile_by_email(sb: Client, email: str) -> Optional[Dict[str, Any]]:
-    """Retrieve profile row by email."""
+    """Retrieve profile row by email (case-insensitive)."""
     try:
-        resp = sb.from_("profiles").select("*").eq("email", email).single().execute()
+        resp = sb.from_("profiles").select("*").eq("email", email.strip().lower()).single().execute()
         return resp.data if resp.data else None
     except Exception:
         return None

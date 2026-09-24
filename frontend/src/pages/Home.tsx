@@ -102,7 +102,7 @@ export default function Home() {
                   <Button variant="outline" size="sm" onClick={() => goDemo("teacher")} className="bg-white">
                     <Icons.book className="h-3.5 w-3.5 mr-1 text-brand-600" /> Teacher Demo
                   </Button>
-                  <Button variant="subtle" size="sm" onClick={() => goDemo("student")} className="bg-brand-600 text-white hover:bg-brand-700">
+                  <Button variant="outline" size="sm" onClick={() => goDemo("student")} className="bg-brand-600 text-white hover:bg-brand-700">
                     <Icons.users className="h-3.5 w-3.5 mr-1" /> Student Demo
                   </Button>
                 </div>
@@ -137,7 +137,7 @@ export default function Home() {
                       size="sm"
                       variant="ghost"
                       className="bg-white/10 text-white hover:bg-white/20"
-                      onClick={() => goDemo("student")}
+                      onClick={() => navigate("/student/materials")}
                     >
                       <Icons.file className="h-3.5 w-3.5 mr-1" /> View materials
                     </Button>

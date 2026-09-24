@@ -27,13 +27,7 @@ def get_announcements():
         enrolled_resp = sb.from_("class_students").select("class_id").eq("student_id", student_id).execute()
         class_ids = [c["class_id"] for c in enrolled_resp.data] if enrolled_resp.data else []
     else:
-        announcements_resp = (
-            sb.from_("announcements")
-            .select("*, profiles:teacher_id(name), classes(name, subject)")
-            .order("created_at", desc=True)
-            .execute()
-        )
-        return jsonify({"announcements": announcements_resp.data if announcements_resp.data else []})
+        return jsonify({"announcements": []})
 
     if class_ids:
         announcements_resp = (

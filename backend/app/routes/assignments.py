@@ -28,8 +28,7 @@ def get_assignments():
         enrolled_resp = sb.from_("class_students").select("class_id").eq("student_id", student_id).execute()
         class_ids = [c["class_id"] for c in enrolled_resp.data] if enrolled_resp.data else []
     else:
-        assignments_resp = sb.from_("assignments").select("*, classes(name, subject)").order("created_at", desc=True).execute()
-        return jsonify({"assignments": assignments_resp.data if assignments_resp.data else []})
+        return jsonify({"assignments": []})
 
     if class_ids:
         assignments_resp = (
@@ -174,14 +173,14 @@ def delete_assignment(assign_id):
     profile = g.profile
     sb = g.sb
 
-    assignment_resp = sb.from_("assignments").select("*").eq("id", assign_id).execute()
+    assignment_resp = sb.from_("assignments").select("*").eq("id", assign_id).single().execute()
     if not assignment_resp.data:
         return jsonify({"error": "Assignment not found"}), 404
 
     class_resp = (
         sb.from_("classes")
         .select("*")
-        .eq("id", assignment_resp.data[0]["class_id"])
+        .eq("id", assignment_resp.data["class_id"])
         .eq("teacher_id", profile["id"])
         .single()
         .execute()

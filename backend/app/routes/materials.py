@@ -23,8 +23,7 @@ def get_materials():
         enrolled_resp = sb.from_("class_students").select("class_id").eq("student_id", student_id).execute()
         class_ids = [c["class_id"] for c in enrolled_resp.data] if enrolled_resp.data else []
     else:
-        materials_resp = sb.from_("materials").select("*, classes(name, subject)").order("created_at", desc=True).execute()
-        return jsonify({"materials": materials_resp.data if materials_resp.data else []})
+        return jsonify({"materials": []})
 
     if class_ids:
         materials_resp = (
@@ -91,14 +90,14 @@ def delete_material(mat_id):
     profile = g.profile
     sb = g.sb
 
-    material_resp = sb.from_("materials").select("*").eq("id", mat_id).execute()
+    material_resp = sb.from_("materials").select("*").eq("id", mat_id).single().execute()
     if not material_resp.data:
         return jsonify({"error": "Material not found"}), 404
 
     class_resp = (
         sb.from_("classes")
         .select("*")
-        .eq("id", material_resp.data[0]["class_id"])
+        .eq("id", material_resp.data["class_id"])
         .eq("teacher_id", profile["id"])
         .single()
         .execute()

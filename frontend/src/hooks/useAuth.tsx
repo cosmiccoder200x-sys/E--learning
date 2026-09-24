@@ -182,10 +182,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (err: any) {
       if (!err.message || err.message.includes("Failed to fetch")) {
         const db = getMockDB();
+        const newUser: User = {
+          id: role === "teacher" ? "teacher-" + Date.now() : "student-" + Date.now(),
+          email,
+          name,
+          role: role as "teacher" | "student",
+          avatar_url: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150",
+        };
         if (role === "student") {
-          db.students.push({ id: "student-" + Date.now(), name, email, role: "student" });
+          db.students.push({ ...newUser, id: newUser.id });
         }
-        const newUser = role === "teacher" ? db.teacher : db.students[0];
         return newUser;
       }
       throw err;

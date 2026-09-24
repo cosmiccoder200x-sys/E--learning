@@ -23,8 +23,7 @@ def get_sessions():
         enrolled_resp = sb.from_("class_students").select("class_id").eq("student_id", student_id).execute()
         class_ids = [c["class_id"] for c in enrolled_resp.data] if enrolled_resp.data else []
     else:
-        sessions_resp = sb.from_("sessions").select("*, classes(name, subject)").order("session_date").order("start_time").execute()
-        return jsonify({"sessions": sessions_resp.data if sessions_resp.data else []})
+        return jsonify({"sessions": []})
 
     if class_ids:
         sessions_resp = (

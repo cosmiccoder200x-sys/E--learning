@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Icons } from "@/components/ui/icons";
 import { api } from "@/services/api";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Cls {
   id: string;
@@ -17,6 +18,7 @@ interface Cls {
 export default function StudentDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [enrolled, setEnrolled] = useState<Cls[]>([]);
   const [sessions, setSessions] = useState<any[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
@@ -39,13 +41,14 @@ export default function StudentDashboard() {
       setSessions(sRes.sessions || []);
       setSubmissions(subRes.submissions || []);
       setAttendance(attRes.attendance || []);
-    } catch {}
-    finally {
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to load dashboard", variant: "destructive" });
+    } finally {
       setLoading(false);
     }
   };
 
-  const nextSession = sessions[0];
+  const nextSession = sessions.filter((s) => new Date(s.session_date) >= new Date()).sort((a, b) => a.session_date.localeCompare(b.session_date) || a.start_time.localeCompare(b.start_time))[0];
   const gradedList = submissions.filter((s) => s.marks !== null && s.marks !== undefined);
   const avgGrade =
     gradedList.length > 0

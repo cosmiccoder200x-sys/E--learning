@@ -6,10 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Icons } from "@/components/ui/icons";
 import { api } from "@/services/api";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function TeacherDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [stats, setStats] = useState({ classes: 0, students: 0, pending: 0, attendance: "96%" });
   const [upcoming, setUpcoming] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,6 +21,7 @@ export default function TeacherDashboard() {
   }, []);
 
   const loadDashboard = async () => {
+    setLoading(true);
     try {
       const [cRes, sRes, subRes] = await Promise.all([
         api.getClasses(),
@@ -29,15 +32,16 @@ export default function TeacherDashboard() {
       const sessionsList = sRes.sessions || [];
       const subsList = subRes.submissions || [];
 
-      // Calculate total enrolled students across classes
       let totalStudents = 0;
       for (const cl of classesList) {
         try {
           const std = await api.getClassStudents(cl.id);
           totalStudents += (std.students || []).length;
-        } catch {}
+        } catch (err: any) {
+          toast({ title: "Note", description: err.message });
+        }
       }
-      if (totalStudents === 0 && classesList.length > 0) totalStudents = 12;
+      if (totalStudents === 0 && classesList.length > 0) totalStudents = 0;
 
       const unGraded = subsList.filter((s: any) => s.marks === null || s.marks === undefined).length;
 
@@ -48,8 +52,9 @@ export default function TeacherDashboard() {
         attendance: "96%",
       });
       setUpcoming(sessionsList.slice(0, 3));
-    } catch {}
-    finally {
+    } catch (err: any) {
+      toast({ title: "Error", description: err.message || "Failed to load dashboard", variant: "destructive" });
+    } finally {
       setLoading(false);
     }
   };
