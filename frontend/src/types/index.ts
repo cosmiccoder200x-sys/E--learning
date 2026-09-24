@@ -70,4 +70,20 @@ export interface Announcement {
   title: string;
   message: string;
   created_at: string;
+  profiles?: { name: string };
+  classes?: { name: string; subject: string };
+}
+
+export interface Submission {
+  id: string;
+  assignment_id: string;
+  student_id: string;
+  file_url: string;
+  text_answer: string;
+  submitted_at: string;
+  marks: number | null;
+  feedback: string;
+  graded_at: string | null;
+  profiles?: { name: string; email?: string };
+  assignments?: { title: string };
 }

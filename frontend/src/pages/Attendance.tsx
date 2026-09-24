@@ -113,6 +113,7 @@ export default function Attendance() {
 
   const handleMark = async (studentId: string, status: "present" | "absent" | "late") => {
     if (!selectedSessionId) return;
+    if (status === "absent" && !window.confirm("Mark this student as absent?")) return;
     try {
       await api.markAttendance({
         session_id: selectedSessionId,
