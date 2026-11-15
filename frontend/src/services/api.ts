@@ -31,7 +31,8 @@ function isNetworkError(err: any): boolean {
 function isMockMode(): boolean {
   const token = localStorage.getItem("supabase_token");
   const guest = localStorage.getItem("guest_mode");
-  return !token || !!guest;
+  // Demo sign-ins use local mock data and do not require a deployed Flask API.
+  return !token || token.startsWith("demo-") || !!guest;
 }
 
 export const api = {
