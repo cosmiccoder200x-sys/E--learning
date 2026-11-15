@@ -3,6 +3,9 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
+  // GitHub Pages serves this repository under /E--learning/.
+  // Keep the root path for local development.
+  base: process.env.GITHUB_ACTIONS === "true" ? "/E--learning/" : "/",
   plugins: [react()],
   resolve: {
     alias: {
