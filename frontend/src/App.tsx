@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import { createBrowserRouter, RouterProvider, Navigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import Home from "@/pages/Home";
 import Login from "@/pages/Login";
@@ -38,12 +38,12 @@ function ProtectedRoute({ allowedRoles }: { allowedRoles: string[] }) {
           <p className="mt-2 text-sm text-slate-500">
             This workspace is intended for {allowedRoles.join("/")}s only.
           </p>
-          <a
-            href={user.role === "teacher" ? "/teacher" : "/student"}
+          <Link
+            to={user.role === "teacher" || user.role === "admin" ? "/teacher" : "/student"}
             className="mt-5 inline-flex rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-slate-800 transition"
           >
             Go to your workspace
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -87,7 +87,7 @@ const router = createBrowserRouter([
     ],
   },
   { path: "*", element: <Navigate to="/" replace /> },
-]);
+], { basename: import.meta.env.BASE_URL });
 
 export default function App() {
   return (
